@@ -9,6 +9,53 @@ import click                          # Lovely formatting!
 from datetime import timedelta        # For formatting time strings
 from platform import system, release  # For getting OS and Version
 
+"""Decorator to handle exceptions"""
+def handleExceptions(function):
+    def handle():
+        try:
+            function()
+        except NotImplementedError as exception:
+            exceptionName = "NotImplementedException."
+            exceptionExplanation = "This option hasn't been implemented yet."
+            exceptionErrorCode = 1
+            exceptionType = "Warning"
+            exceptionSuggestedActions = "Please give the developer a poke."
+        except BaseException as exception:
+            exceptionName = "BaseException"
+            exceptionExplanation = exception
+            exceptionErrorCode = 2
+            exceptionType = "Fatal"
+            exceptionSuggestedActions = "Please visit https://github.com/DylanHamer/GoFetch/issues to report an issue."
+        click.secho("\nSomething went wrong!", fg='red')
+        click.secho("""Error: {en}\nExplanation: {ee}\nSuggested Actions: {sa}\n""".format(
+                                                                                           en=exceptionName,
+                                                                                           ee=exceptionExplanation,
+                                                                                           sa=exceptionSuggestedActions
+                                                                                           ), 
+                                                                                           fg='yellow'
+                                                                                           )
+        if exceptionType == "Fatal":
+            exit(exceptionErrorCode)
+    return handle
+
+"""Decorator to format text"""
+def format(function):
+    @handleExceptions
+    @click.command()
+    @click.option('--highlightcolor', default='blue')
+    @click.option('--textcolor', default='white')
+    def formatText(highlightcolor, textcolor):
+        showText = function().showText
+        for textItem in showText:
+            newline = True
+            color = textcolor
+            if "/h" in textItem:
+                color = highlightcolor
+            elif "/o" in textItem:
+                newline = False
+            click.secho(textItem, fg=color, nl=newline) 
+    return formatText
+
 """Get uptime and return it in H:M:S format"""
 def getUptime():
     with open('/proc/uptime', 'r') as f:
@@ -19,22 +66,27 @@ def getUptime():
     seconds = uptime[2]
     return hours, minutes, seconds
 
-"""Show OS info"""
-def showOSInfo():
-    click.echo(click.style("OS Information", fg='red'))
-    click.echo("")
-    click.echo("OS: {p}".format(p=system()))
-    click.echo("OS Version: {r}".format(r=release()))
-    click.echo("")
+"""Get OS info"""
+def getOSInfo():
+    osName = system()
+    osVersion = release()
+    return osName, osVersion
 
-def showUptime():
-    click.echo(click.style("Uptime", fg='red'))
-    click.echo("")
-    hours, minutes, seconds = getUptime()
-    click.echo("{h} hours".format(h=hours))
-    click.echo("{m} minutes".format(m=minutes))
-    click.echo("{s} seconds".format(s=seconds))
-    click.echo("")
+"""Show info"""
+@format
+def showOSInfo():            
+    osName, osVersion = getOSInfo()
+    uptimeHours, uptimeMinutes, uptimeSeconds = getUptime()
+    showText = [
+                "/hOS:/o",
+                osName,
+                "/hOS Version:/o",
+                osVersion,
+                "/hUptime/o:",
+                uptimeHours+" hours /o",
+                uptimeMinutes+" minutes /o",
+                uptimeSeconds+" seconds /o"
+               ]
 
 """Main function"""
 @click.command()
