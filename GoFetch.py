@@ -23,7 +23,7 @@ def handleExceptions(function):
                      "code": 1}
         except ValueError as error:
             try:
-                click.launch('http://click.pocoo.org/')
+                click.launch('http://https://github.com/DylanHamer/GoFetch/issues')
             except:
                 click.secho("Warning: Could not open browser", fg="orange")
                 error = {"name": "value error",
@@ -35,6 +35,7 @@ def handleExceptions(function):
                      "description": str(error),
                      "action": "Give the developer a gentle prod.",
                      "code": 2}
+   
 @handleExceptions
 def generateOSInfo():
     osType = system()
