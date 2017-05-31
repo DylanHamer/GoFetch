@@ -81,7 +81,7 @@ def getUptime():
     return hours, minutes, seconds
 
 """Display uptime"""
-@handleExceptions
+#@handleExceptions
 def displayUptime(highlight='cyan'):
     hours, minutes, seconds = getUptime()
     click.secho("Uptime: ", nl=False)
